@@ -1,0 +1,21 @@
+{
+  "name": "promptlab",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "http-server . -p 8080 -c-1",
+    "install": "npm install http-server --save-dev"
+  },
+  "keywords": [
+    "prompt-engineering",
+    "gemini-nano",
+    "chrome-ai",
+    "offline-ai"
+  ],
+  "author": "Matheus Gasparotto Polli",
+  "license": "MIT",
+  "description": "Playground de Engenharia de Prompt Offline com Gemini Nano",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

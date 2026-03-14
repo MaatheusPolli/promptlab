@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptLab — Gemini Nano Playground</title>
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="logo">
+                <h1>🧩 PromptLab</h1>
+                <span class="badge">Offline Gemini Nano</span>
+            </div>
+            <nav class="main-nav">
+                <button id="nav-single" class="active">Single Run</button>
+                <button id="nav-ab">A/B Testing</button>
+                <button id="nav-library">Library</button>
+            </nav>
+        </header>
+
+        <main id="main-content">
+            <!-- Content will be injected by views -->
+            <div id="view-container">
+                <!-- Fallback/Loading state -->
+                <div class="setup-notice" id="setup-notice">
+                    <h2>Detectando Chrome AI...</h2>
+                    <p>Aguarde enquanto verificamos se as APIs nativas estão prontas.</p>
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <div class="footer-info">
+                <span>Matheus Gasparotto Polli</span>
+            </div>
+            <div class="footer-links">
+                <button id="export-library">Export Library (JSON)</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- UI Templates -->
+    <template id="tpl-editor">
+        <div class="split-pane">
+            <div class="editor-pane">
+                <div class="pane-header">
+                    <h3>Editor de Prompt</h3>
+                    <div class="prompt-actions">
+                        <button id="save-prompt">💾 Salvar na Lib</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="system-prompt">System Prompt (Contexto)</label>
+                    <textarea id="system-prompt" placeholder="Ex: Você é um assistente criativo..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="user-prompt">User Prompt</label>
+                    <div class="prism-editor">
+                        <textarea id="user-prompt" placeholder="Use {{variavel}} para campos dinâmicos..."></textarea>
+                    </div>
+                </div>
+
+                <div id="variables-container" class="variables-container hidden">
+                    <label>Variáveis do Template</label>
+                    <div id="variables-fields" class="variables-fields">
+                        <!-- Dynamic inputs here -->
+                    </div>
+                </div>
+
+                <div class="parameters-grid">
+                    <div class="param-item">
+                        <div class="param-label">
+                            <label>Temperature</label>
+                            <span id="val-temp" class="val-display">0.7</span>
+                        </div>
+                        <input type="range" id="param-temp" min="0" max="1" step="0.1" value="0.7">
+                    </div>
+                    <div class="param-item">
+                        <div class="param-label">
+                            <label>Top K</label>
+                            <span id="val-topk" class="val-display">10</span>
+                        </div>
+                        <input type="range" id="param-topk" min="1" max="40" step="1" value="10">
+                    </div>
+                </div>
+
+                <div class="run-controls">
+                    <button id="btn-run" class="btn-primary">▶ EXECUTAR</button>
+                    <button id="btn-consistency" class="btn-secondary">⚖️ Testar Consistência (x3)</button>
+                    <button id="btn-batch" class="btn-secondary">📦 Batch Test (Lote)</button>
+                </div>
+
+                <div id="batch-container" class="batch-container hidden">
+                    <label>Dados para Lote (CSV: var1, var2...)</label>
+                    <textarea id="batch-input" placeholder="valor1, valor2... (uma linha por execução)"></textarea>
+                    <div class="batch-actions" style="margin-top: 0.5rem;">
+                        <button id="btn-batch-run" class="btn-primary btn-small">🚀 Iniciar Execução em Lote</button>
+                    </div>
+                    <div id="batch-progress" class="batch-progress hidden">
+                        Progresso: <span id="batch-current">0</span>/<span id="batch-total">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="output-pane">
+                <div class="pane-header">
+                    <h3>Resposta do Gemini</h3>
+                    <div id="loading-indicator" class="hidden">Gerando...</div>
+                </div>
+                
+                <div id="response-output" class="response-area">
+                    <div class="empty-state">Execute um prompt para ver o resultado</div>
+                </div>
+
+                <div class="metrics-bar" id="metrics-bar">
+                    <div class="metric">⏱ <span id="m-time">-</span>ms</div>
+                    <div class="metric">📊 <span id="m-tokens">-</span> tokens</div>
+                    <div class="metric">⚖️ <span id="m-consistency">-</span>%</div>
+                    <div class="metric">⭐ <span id="m-eval">-</span>/10</div>
+                </div>
+
+                <div class="output-actions">
+                    <button id="btn-self-eval" class="btn-small" disabled>Auto-Avaliar (Self-Eval)</button>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="metrics-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="tpl-ab-test">
+        <div class="ab-container">
+            <div class="ab-editors">
+                <div class="ab-side side-a">
+                    <h4>Prompt A</h4>
+                    <textarea id="prompt-a" placeholder="Prompt A..."></textarea>
+                    <div class="ab-params">
+                        Temp: <span id="val-temp-a">0.7</span>
+                        <input type="range" id="temp-a" min="0" max="1" step="0.1" value="0.7">
+                    </div>
+                </div>
+                <div class="ab-side side-b">
+                    <h4>Prompt B</h4>
+                    <textarea id="prompt-b" placeholder="Prompt B..."></textarea>
+                    <div class="ab-params">
+                        Temp: <span id="val-temp-b">0.7</span>
+                        <input type="range" id="temp-b" min="0" max="1" step="0.1" value="0.7">
+                    </div>
+                </div>
+            </div>
+            <div class="ab-actions">
+                <button id="btn-run-ab" class="btn-primary">▶ EXECUTAR TESTE A/B</button>
+            </div>
+            <div class="ab-results">
+                <div class="res-side" id="res-a"></div>
+                <div class="res-side" id="res-b"></div>
+            </div>
+            <div id="diff-view" class="diff-view hidden">
+                <h4>Diff de Saída</h4>
+                <div id="diff-content" class="diff-content"></div>
+            </div>
+        </div>
+    </template>
+
+    <template id="tpl-library">
+        <div class="library-container">
+            <div class="lib-header">
+                <h3>Sua Biblioteca</h3>
+                <div class="search-wrapper">
+                    <input type="text" id="lib-search" list="tag-suggestions" placeholder="Buscar por título ou tags...">
+                    <datalist id="tag-suggestions"></datalist>
+                </div>
+            </div>
+            <div id="lib-list" class="lib-list">
+                <!-- Prompts loaded here -->
+            </div>
+        </div>
+    </template>
+
+    <!-- Prism.js core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script type="module" src="index.js"></script>
+</body>
+
+</html>
