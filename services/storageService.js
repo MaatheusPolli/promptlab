@@ -153,4 +153,27 @@ export class StorageService {
       request.onerror = () => reject(request.error);
     });
   }
+
+  async getLastRuns(limit = 10) {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['runs'], 'readonly');
+      const store = transaction.objectStore('runs');
+      const index = store.index('timestamp');
+      const results = [];
+
+      const request = index.openCursor(null, 'prev');
+
+      request.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor && results.length < limit) {
+          results.push(cursor.value);
+          cursor.continue();
+        } else {
+          resolve(results);
+        }
+      };
+      request.onerror = (event) => reject(event.target.error);
+    });
+  }
 }

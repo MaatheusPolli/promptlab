@@ -19,6 +19,9 @@ export class ABTestController {
     const { A, B } = this.view.getABData();
     if (!A.userPrompt || !B.userPrompt) return;
 
+    const btn = document.getElementById('btn-run-ab');
+    btn?.classList.add('loading');
+
     try {
       const [resA, resB] = await Promise.all([
         this.aiService.runPrompt({ ...A, systemPrompt: '' }),
@@ -38,6 +41,8 @@ export class ABTestController {
       });
     } catch (error) {
       alert(`Erro no teste A/B: ${error.message}`);
+    } finally {
+      btn?.classList.remove('loading');
     }
   }
 }

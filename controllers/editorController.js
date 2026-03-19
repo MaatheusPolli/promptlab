@@ -36,13 +36,21 @@ export class EditorController {
     document.getElementById('btn-run')?.addEventListener('click', () => this.handleRun());
     document.getElementById('btn-consistency')?.addEventListener('click', () => this.handleConsistencyTest());
     document.getElementById('btn-batch')?.addEventListener('click', () => this.view.toggleBatchContainer());
-    document.getElementById('btn-batch-run')?.remove(); // Cleanup if exists
     
-    // Add event listener for the run batch button (using delegation)
+    // Add event listener for container elements (using delegation)
     container.addEventListener('click', (e) => {
       if (e.target.id === 'btn-batch-run') this.handleBatchRun();
+      if (e.target.id === 'btn-close-batch') this.view.toggleBatchContainer();
       if (e.target.id === 'btn-export-json') this.handleExport('json');
       if (e.target.id === 'btn-export-md') this.handleExport('markdown');
+      
+      // Botão Ver Full na tabela de lote
+      if (e.target.classList.contains('btn-view-detail')) {
+        const index = e.target.dataset.index;
+        const result = this.view.lastBatchResults[index];
+        this.currentOutput = result.output;
+        this.view.showOutput(result.output);
+      }
     });
 
     document.getElementById('btn-self-eval')?.addEventListener('click', () => this.handleSelfEval());
@@ -50,19 +58,30 @@ export class EditorController {
   }
 
   async handleBatchRun() {
-    const data = this.view.getEditorData();
+    const batchInput = document.getElementById('batch-input');
     const batchData = this.view.getBatchData();
-    if (batchData.length === 0) return;
+    
+    // Validação
+    if (batchData.length === 0) {
+      batchInput.classList.add('input-error');
+      batchInput.placeholder = "⚠️ Por favor, insira dados para o lote (ex: valor1, valor2)";
+      setTimeout(() => batchInput.classList.remove('input-error'), 2000);
+      return;
+    }
 
+    const data = this.view.getEditorData();
+    const btn = document.getElementById('btn-batch-run');
+    
     // Get variable names from current template
     const text = (data.systemPrompt + ' ' + data.userPrompt);
     const varNames = [...new Set(text.match(/{{(.*?)}}/g) || [])].map(v => v.replace(/{{|}}/g, ''));
 
     if (varNames.length === 0) {
-      alert('Nenhuma variável encontrada no prompt.');
+      alert('Nenhuma variável {{}} encontrada no prompt para preencher com os dados do lote.');
       return;
     }
 
+    btn.classList.add('loading');
     this.view.showLoading(true);
     const results = [];
 
@@ -102,14 +121,15 @@ export class EditorController {
         });
       }
 
-      // Show summary of last run or a combined view
-      this.view.showOutput(`### 📦 Resultados do Lote (${results.length} execuções)\n\nÚltima saída:\n${results[results.length-1].output}`);
+      // Renderiza a tabela de resultados completa
+      this.view.showBatchResults(results, varNames);
       this.refreshChart();
-      alert('Execução em lote concluída!');
+      alert(`Execução em lote concluída! ${results.length} itens processados.`);
     } catch (error) {
       this.view.showError(`Erro no lote: ${error.message}`);
     } finally {
       this.view.showLoading(false);
+      btn.classList.remove('loading');
     }
   }
 
@@ -149,6 +169,10 @@ export class EditorController {
     const data = this.view.getEditorData();
     if (!data.userPrompt) return;
 
+    const btn = document.getElementById('btn-run');
+    btn?.classList.add('loading');
+    this.view.showLoading(true);
+
     // Process variables
     const vars = this.view.getVariables();
     let processedSystemPrompt = data.systemPrompt;
@@ -160,7 +184,6 @@ export class EditorController {
       processedUserPrompt = processedUserPrompt.replace(regex, value);
     }
 
-    this.view.showLoading(true);
     try {
       const { output, responseTimeMs } = await this.aiService.runPrompt({
         ...data,
@@ -195,6 +218,7 @@ export class EditorController {
       this.view.showError(`Erro: ${error.message}`);
     } finally {
       this.view.showLoading(false);
+      btn?.classList.remove('loading');
     }
   }
 
@@ -204,7 +228,10 @@ export class EditorController {
 
     if (!confirm('Este teste executará o prompt 3 vezes para medir a estabilidade da resposta. Deseja continuar?')) return;
 
+    const btn = document.getElementById('btn-consistency');
+    btn?.classList.add('loading');
     this.view.showLoading(true);
+
     try {
       const outputs = [];
       for (let i = 0; i < 3; i++) {
@@ -221,6 +248,7 @@ export class EditorController {
       this.view.showError(`Erro no teste de consistência: ${error.message}`);
     } finally {
       this.view.showLoading(false);
+      btn?.classList.remove('loading');
     }
   }
 
@@ -228,16 +256,37 @@ export class EditorController {
     if (!this.currentOutput) return;
 
     const data = this.view.getEditorData();
+    const btn = document.getElementById('btn-self-eval');
+    
+    btn?.classList.add('loading');
     this.view.showLoading(true);
+
     try {
       const { score, reasoning } = await this.selfEvalService.selfEvaluate(data.userPrompt, this.currentOutput);
       this.currentMetrics.selfEvalScore = score;
       this.view.updateMetrics(this.currentMetrics);
-      alert(`Auto-Avaliação: ${score}/10\nMotivo: ${reasoning}`);
+      
+      // Injetar resultado visualmente em vez de alert
+      const outputArea = document.getElementById('response-output');
+      const evalHtml = `
+        <div class="eval-result">
+          <div style="margin-bottom: 0.5rem; font-weight: bold; color: var(--accent-color);">⭐ Auto-Avaliação da IA</div>
+          <div>
+            <span class="eval-score-badge">${score}/10</span>
+            <span class="eval-reasoning">${reasoning}</span>
+          </div>
+        </div>
+      `;
+      
+      const existingEval = outputArea.querySelector('.eval-result');
+      if (existingEval) existingEval.remove();
+      outputArea.insertAdjacentHTML('beforeend', evalHtml);
+
     } catch (error) {
       alert(`Erro na auto-avaliação: ${error.message}`);
     } finally {
       this.view.showLoading(false);
+      btn?.classList.remove('loading');
     }
   }
 

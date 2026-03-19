@@ -10,39 +10,45 @@ export class SelfEvalService {
    * @returns {Promise<{score: number, reasoning: string}>}
    */
   async selfEvaluate(originalPrompt, output) {
-    const evalPrompt = `
-You previously responded to this prompt:
-"${originalPrompt}"
+    const evalPrompt = `### TAREFA: Avalie sua própria resposta anterior.
+  PROMPT ORIGINAL: "${originalPrompt}"
+  SUA RESPOSTA: "${output}"
 
-Your response was:
-"${output}"
+  ### CRITÉRIOS (1-10):
+  1. Precisão: A informação está correta?
+  2. Completude: Respondeu tudo o que foi pedido?
+  3. Estrutura: O texto está bem organizado?
 
-Rate your own response on a scale of 1–10 based on:
-- Accuracy and correctness
-- Completeness
-- Clarity and structure
-- Following the original instructions
-
-Return ONLY a JSON object:
-{ "score": <1-10>, "reasoning": "<one sentence why>" }
-`;
+  ### FORMATO DE RESPOSTA OBRIGATÓRIO (JSON APENAS):
+  { "score": <número>, "reasoning": "<uma frase curta em português>" }`;
 
     try {
-      // Use low temperature for more consistent evaluation
-      const result = await this.aiService.runRawPrompt(evalPrompt, { temperature: 0.1 });
-      
-      // Try to extract JSON from result (in case AI adds noise)
-      const jsonMatch = result.match(/\{.*\}/s);
-      const jsonStr = jsonMatch ? jsonMatch[0] : result;
-      
+      const rawResult = await this.aiService.runRawPrompt(evalPrompt, { temperature: 0.1 });
+      console.log('Self-Eval Raw Response:', rawResult);
+
+      // Extração Ultra-Robusta: Ignora qualquer texto antes ou depois do objeto JSON
+      const firstBrace = rawResult.indexOf('{');
+      const lastBrace = rawResult.lastIndexOf('}');
+
+      if (firstBrace === -1 || lastBrace === -1) {
+        throw new Error('A IA não retornou um formato de dados válido.');
+      }
+
+      const jsonStr = rawResult.substring(firstBrace, lastBrace + 1);
       const parsed = JSON.parse(jsonStr);
+
       return {
-        score: Number(parsed.score) || null,
-        reasoning: parsed.reasoning || 'No reasoning provided'
+        score: Math.min(10, Math.max(0, Number(parsed.score) || 0)),
+        reasoning: parsed.reasoning || 'O modelo não forneceu uma justificativa válida.'
       };
     } catch (error) {
       console.error('Self-evaluation failed:', error);
-      return { score: null, reasoning: `Evaluation error: ${error.message}` };
+      // Fallback amigável em caso de falha de parsing
+      return { 
+        score: 0, 
+        reasoning: `Não foi possível analisar a nota. A IA respondeu: "${rawResult?.substring(0, 50)}..."` 
+      };
     }
   }
+
 }

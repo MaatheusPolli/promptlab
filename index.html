@@ -18,9 +18,9 @@
                 <span class="badge">Offline Gemini Nano</span>
             </div>
             <nav class="main-nav">
-                <button id="nav-single" class="active">Single Run</button>
-                <button id="nav-ab">A/B Testing</button>
-                <button id="nav-library">Library</button>
+                <button id="nav-single" class="active" title="Editor principal para criar e testar prompts individuais.">Single Run</button>
+                <button id="nav-ab" title="Compare dois prompts diferentes lado a lado para ver qual performa melhor.">A/B Testing</button>
+                <button id="nav-library" title="Acesse sua coleção de prompts salvos e organizados por tags.">Library</button>
             </nav>
         </header>
 
@@ -37,10 +37,12 @@
 
         <footer class="app-footer">
             <div class="footer-info">
-                <span>Matheus Gasparotto Polli</span>
+                <span>&copy; 2026 PromptLab — Criado por <strong>Matheus Gasparotto Polli</strong></span>
             </div>
             <div class="footer-links">
-                <button id="export-library">Export Library (JSON)</button>
+                <button id="export-library" class="btn-export" title="Fazer backup de toda a sua biblioteca de prompts em um arquivo JSON.">
+                    <span>📂</span> Exportar Biblioteca Completa (JSON)
+                </button>
             </div>
         </footer>
     </div>
@@ -52,23 +54,25 @@
                 <div class="pane-header">
                     <h3>Editor de Prompt</h3>
                     <div class="prompt-actions">
-                        <button id="save-prompt">💾 Salvar na Lib</button>
+                        <button id="save-prompt" class="btn-small" title="Salva este prompt, seus parâmetros e tags na sua biblioteca local.">💾 Salvar na Lib</button>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="system-prompt">System Prompt (Contexto)</label>
-                    <textarea id="system-prompt" placeholder="Ex: Você é um assistente criativo..."></textarea>
+                    <label for="system-prompt" title="Define a personalidade ou regras de comportamento para a IA (ex: 'Você é um tradutor').">System Prompt (A Personalidade)</label>
+                    <span class="field-help">Define <strong>quem a IA é</strong> e <strong>como</strong> ela deve se comportar (ex: Persona, tom de voz, regras).</span>
+                    <textarea id="system-prompt" placeholder="Ex: Você é um assistente especializado em tradução formal. Responda sempre de forma curta."></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="user-prompt">User Prompt</label>
+                    <label for="user-prompt" title="O comando principal que você envia para a IA. Use {{variavel}} para criar campos que mudam.">User Prompt (A Tarefa)</label>
+                    <span class="field-help">O <strong>comando específico</strong> ou pergunta que você quer que a IA processe agora.</span>
                     <div class="prism-editor">
-                        <textarea id="user-prompt" placeholder="Use {{variavel}} para campos dinâmicos..."></textarea>
+                        <textarea id="user-prompt" placeholder="Ex: Traduza o seguinte texto para {{idioma}}: '{{texto}}'"></textarea>
                     </div>
                 </div>
 
-                <div id="variables-container" class="variables-container hidden">
+                <div id="variables-container" class="variables-container hidden" title="Campos gerados automaticamente a partir do seu prompt usando {{}}.">
                     <label>Variáveis do Template</label>
                     <div id="variables-fields" class="variables-fields">
                         <!-- Dynamic inputs here -->
@@ -78,14 +82,14 @@
                 <div class="parameters-grid">
                     <div class="param-item">
                         <div class="param-label">
-                            <label>Temperature</label>
+                            <label title="Aumente (próximo a 1) para respostas mais criativas e variadas. Diminua (próximo a 0) para respostas mais sérias, curtas e padronizadas.">Temperature (Criatividade)</label>
                             <span id="val-temp" class="val-display">0.7</span>
                         </div>
                         <input type="range" id="param-temp" min="0" max="1" step="0.1" value="0.7">
                     </div>
                     <div class="param-item">
                         <div class="param-label">
-                            <label>Top K</label>
+                            <label title="Controla o vocabulário: Valores baixos usam apenas as palavras mais comuns. Valores altos permitem que a IA use palavras mais raras e complexas.">Top K (Vocabulário)</label>
                             <span id="val-topk" class="val-display">10</span>
                         </div>
                         <input type="range" id="param-topk" min="1" max="40" step="1" value="10">
@@ -93,19 +97,31 @@
                 </div>
 
                 <div class="run-controls">
-                    <button id="btn-run" class="btn-primary">▶ EXECUTAR</button>
-                    <button id="btn-consistency" class="btn-secondary">⚖️ Testar Consistência (x3)</button>
-                    <button id="btn-batch" class="btn-secondary">📦 Batch Test (Lote)</button>
+                    <button id="btn-run" class="btn-primary" title="Envia seu prompt para o Gemini Nano e gera uma resposta única.">▶ EXECUTAR</button>
+                    <button id="btn-consistency" class="btn-secondary" title="Executa o prompt 3 vezes para medir o quanto a resposta varia (estabilidade).">⚖️ Testar Consistência (x3)</button>
+                    <button id="btn-batch" class="btn-secondary" title="Executa o prompt para várias entradas diferentes de uma só vez usando um arquivo ou lista.">📦 Batch Test (Lote)</button>
                 </div>
 
                 <div id="batch-container" class="batch-container hidden">
-                    <label>Dados para Lote (CSV: var1, var2...)</label>
-                    <textarea id="batch-input" placeholder="valor1, valor2... (uma linha por execução)"></textarea>
-                    <div class="batch-actions" style="margin-top: 0.5rem;">
-                        <button id="btn-batch-run" class="btn-primary btn-small">🚀 Iniciar Execução em Lote</button>
+                    <div class="batch-header">
+                        <div class="batch-title">
+                            <strong>📦 Execução em Lote (Batch)</strong>
+                            <p>Envie várias variações de uma vez.</p>
+                        </div>
+                        <button id="btn-close-batch" class="btn-close" title="Fechar painel de lote">&times;</button>
                     </div>
-                    <div id="batch-progress" class="batch-progress hidden">
-                        Progresso: <span id="batch-current">0</span>/<span id="batch-total">0</span>
+                    
+                    <div class="batch-body">
+                        <label>Dados (Formato CSV: valor1, valor2...)</label>
+                        <p class="field-help">Uma linha para cada execução do prompt.</p>
+                        <textarea id="batch-input" placeholder="Exemplo:&#10;Inglês, Feliz&#10;Espanhol, Triste&#10;Alemão, Sério"></textarea>
+                    </div>
+
+                    <div class="batch-footer">
+                        <button id="btn-batch-run" class="btn-primary">🚀 Iniciar Todas as Execuções</button>
+                        <div id="batch-progress" class="batch-progress hidden">
+                            Progresso: <span id="batch-current">0</span>/<span id="batch-total">0</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -121,17 +137,17 @@
                 </div>
 
                 <div class="metrics-bar" id="metrics-bar">
-                    <div class="metric">⏱ <span id="m-time">-</span>ms</div>
-                    <div class="metric">📊 <span id="m-tokens">-</span> tokens</div>
-                    <div class="metric">⚖️ <span id="m-consistency">-</span>%</div>
-                    <div class="metric">⭐ <span id="m-eval">-</span>/10</div>
+                    <div class="metric" title="Tempo total que a IA levou para processar e responder (em milissegundos).">⏱ <span id="m-time">-</span>ms</div>
+                    <div class="metric" title="Quantidade estimada de tokens (unidades de texto) processados na entrada e saída.">📊 <span id="m-tokens">-</span> tokens</div>
+                    <div class="metric" title="Indica o quanto a resposta é similar a execuções anteriores (útil para medir estabilidade).">⚖️ <span id="m-consistency">-</span>%</div>
+                    <div class="metric" title="Nota de 1 a 10 dada pela própria IA sobre a qualidade da resposta gerada.">⭐ <span id="m-eval">-</span>/10</div>
                 </div>
 
                 <div class="output-actions">
-                    <button id="btn-self-eval" class="btn-small" disabled>Auto-Avaliar (Self-Eval)</button>
+                    <button id="btn-self-eval" class="btn-small" disabled title="Pede para o Gemini Nano analisar e pontuar sua própria resposta.">Auto-Avaliar (Self-Eval)</button>
                 </div>
 
-                <div class="chart-container">
+                <div class="chart-container" title="Visualização gráfica das métricas de performance das últimas execuções.">
                     <canvas id="metrics-chart"></canvas>
                 </div>
             </div>
@@ -142,31 +158,32 @@
         <div class="ab-container">
             <div class="ab-editors">
                 <div class="ab-side side-a">
-                    <h4>Prompt A</h4>
+                    <h4 title="Primeira versão do prompt para comparação.">Prompt A</h4>
                     <textarea id="prompt-a" placeholder="Prompt A..."></textarea>
                     <div class="ab-params">
-                        Temp: <span id="val-temp-a">0.7</span>
+                        <span title="Temperatura para o Prompt A.">Temp: <span id="val-temp-a">0.7</span></span>
                         <input type="range" id="temp-a" min="0" max="1" step="0.1" value="0.7">
                     </div>
                 </div>
                 <div class="ab-side side-b">
-                    <h4>Prompt B</h4>
+                    <h4 title="Segunda versão do prompt para comparação.">Prompt B</h4>
                     <textarea id="prompt-b" placeholder="Prompt B..."></textarea>
                     <div class="ab-params">
-                        Temp: <span id="val-temp-b">0.7</span>
+                        <span title="Temperatura para o Prompt B.">Temp: <span id="val-temp-b">0.7</span></span>
                         <input type="range" id="temp-b" min="0" max="1" step="0.1" value="0.7">
                     </div>
                 </div>
             </div>
             <div class="ab-actions">
-                <button id="btn-run-ab" class="btn-primary">▶ EXECUTAR TESTE A/B</button>
+                <button id="btn-run-ab" class="btn-primary" title="Executa os dois prompts ao mesmo tempo para comparação direta.">▶ EXECUTAR TESTE A/B</button>
             </div>
             <div class="ab-results">
-                <div class="res-side" id="res-a"></div>
-                <div class="res-side" id="res-b"></div>
+                <div class="res-side" id="res-a" title="Resultado gerado pelo Prompt A."></div>
+                <div class="res-side" id="res-b" title="Resultado gerado pelo Prompt B."></div>
             </div>
             <div id="diff-view" class="diff-view hidden">
-                <h4>Diff de Saída</h4>
+                <h4 title="Mostra visualmente as diferenças entre a Resposta A e a Resposta B.">Comparação: O que mudou?</h4>
+                <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">As palavras em <span style="color: var(--success-color)">verde</span> foram adicionadas na Versão B, e as em <span style="color: var(--danger-color); text-decoration: line-through;">vermelho</span> foram removidas ou alteradas.</p>
                 <div id="diff-content" class="diff-content"></div>
             </div>
         </div>
@@ -177,11 +194,11 @@
             <div class="lib-header">
                 <h3>Sua Biblioteca</h3>
                 <div class="search-wrapper">
-                    <input type="text" id="lib-search" list="tag-suggestions" placeholder="Buscar por título ou tags...">
+                    <input type="text" id="lib-search" list="tag-suggestions" placeholder="Buscar por título ou tags..." title="Digite para filtrar prompts por nome ou use as sugestões de tags.">
                     <datalist id="tag-suggestions"></datalist>
                 </div>
             </div>
-            <div id="lib-list" class="lib-list">
+            <div id="lib-list" class="lib-list" title="Lista de todos os seus prompts salvos localmente.">
                 <!-- Prompts loaded here -->
             </div>
         </div>

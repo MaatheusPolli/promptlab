@@ -11,25 +11,51 @@ export class AIService {
   async checkRequirements() {
     const errors = [];
 
+    // Unified AI API detection (matching working project: codereview-ai-master)
+    const languageModel = window.ai?.languageModel || 
+                         window.ai?.assistant || 
+                         window.aiPrompt || 
+                         window.model ||
+                         window.chrome?.ai?.languageModel ||
+                         navigator.ai?.languageModel ||
+                         self.LanguageModel;
+
     if (!window.chrome) {
       errors.push("⚠️ Este recurso só funciona no Google Chrome ou Chrome Canary (versão recente).");
     }
 
-    if (!window.ai?.languageModel) {
-      errors.push("⚠️ As APIs nativas de IA (window.ai.languageModel) não estão ativas.");
-      errors.push("Ative as seguintes flags em chrome://flags/:");
-      errors.push("- Prompt API for Gemini Nano (#prompt-api-for-gemini-nano)");
-      errors.push("- Optimization Guide On-Device Model (#optimization-guide-on-device-model - set to 'Enabled BypassPrefRequirement')");
+    if (!window.isSecureContext) {
+      errors.push("⚠️ O recurso de IA requer um contexto seguro (HTTPS ou localhost).");
+    }
+
+    if (!languageModel) {
+      errors.push("❌ <strong>Acesso à IA bloqueado pelo Google.</strong>");
+      errors.push("<br><strong>Como resolver:</strong>");
+      errors.push("1. <strong>Mude de Perfil:</strong> Crie um novo perfil no Chrome (clique na sua foto -> Adicionar) e use-o <strong>sem fazer login</strong> em nenhuma conta.");
+      errors.push("2. <strong>Conta Workspace:</strong> Se você usa e-mail de empresa ou faculdade, o administrador bloqueou este recurso.");
+      errors.push("3. <strong>Idade:</strong> O Gemini Nano é desativado para contas de menores de 18 anos.");
+      errors.push("4. <strong>Atividade na Web:</strong> Certifique-se que 'Atividade na Web e em Apps' está ligada em <a href='https://myactivity.google.com/activitycontrols' target='_blank'>myactivity.google.com</a>.");
+      
       return errors;
     }
 
-    const availability = await window.ai.languageModel.availability();
-    if (availability === 'unavailable') {
-      errors.push("⚠️ O seu dispositivo não suporta modelos de linguagem nativos de IA.");
-    } else if (availability === 'downloading') {
-      errors.push("⚠️ O modelo de linguagem de IA está sendo baixado. Por favor, aguarde e tente novamente.");
-    } else if (availability === 'after-download') {
-      errors.push("⚠️ O modelo precisa ser baixado. Abra o console do Chrome para acompanhar se solicitado.");
+    // Alias the correct one to window.ai.languageModel for internal use if needed
+    if (!window.ai) window.ai = {};
+    if (!window.ai.languageModel) {
+        window.ai.languageModel = languageModel;
+    }
+
+    try {
+        const availability = await window.ai.languageModel.availability({ expectedOutputLanguage: 'en' });
+        if (availability === 'unavailable' || availability === 'no') {
+          errors.push("⚠️ O seu dispositivo não suporta modelos de linguagem nativos de IA.");
+        } else if (availability === 'downloading') {
+          errors.push("⚠️ O modelo de linguagem de IA está sendo baixado. Por favor, aguarde e tente novamente.");
+        } else if (availability === 'after-download') {
+          errors.push("⚠️ O modelo precisa ser baixado. Abra o console do Chrome para acompanhar se solicitado.");
+        }
+    } catch (e) {
+        errors.push("❌ Erro ao inicializar a API de IA. Verifique as configurações do navegador.");
     }
 
     return errors.length > 0 ? errors : null;
@@ -54,7 +80,8 @@ export class AIService {
         const session = await window.ai.languageModel.create({
           systemPrompt,
           temperature,
-          topK
+          topK,
+          expectedOutputLanguage: 'en'
         });
 
         const start = performance.now();
@@ -67,7 +94,6 @@ export class AIService {
         }
       } catch (error) {
         lastError = error;
-        console.warn(`Tentativa ${i + 1} falhou:`, error);
       }
     }
 
@@ -90,14 +116,17 @@ export class AIService {
 
     for (let i = 0; i <= maxRetries; i++) {
       try {
-        const session = await window.ai.languageModel.create(options);
+        const session = await window.ai.languageModel.create({
+          ...options,
+          expectedOutputLanguage: 'en'
+        });
         try {
           return await session.prompt(text);
         } finally {
           session.destroy();
         }
       } catch (error) {
-        console.warn(`Tentativa interna ${i + 1} falhou:`, error);
+        // Silently retry
       }
     }
 
@@ -109,6 +138,10 @@ export class AIService {
    */
   async getDefaults() {
     if (!window.ai?.languageModel) return { temperature: 0.7, topK: 3 };
-    return await window.ai.languageModel.capabilities();
+    try {
+      return await window.ai.languageModel.capabilities();
+    } catch (e) {
+      return { temperature: 0.7, topK: 3 };
+    }
   }
 }

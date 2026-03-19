@@ -32,10 +32,27 @@ export class EditorView {
     const container = document.getElementById('variables-container');
     const fields = document.getElementById('variables-fields');
     
+    // Atualiza também o informativo de mapeamento no painel de Batch
+    this.updateBatchMapping(vars);
+
     if (vars.length === 0) {
       container.classList.add('hidden');
       return;
     }
+    // ... rest of method
+  }
+
+  updateBatchMapping(vars) {
+    const batchInput = document.getElementById('batch-input');
+    if (!batchInput) return;
+
+    const mappingLabel = document.querySelector('.batch-body label');
+    if (vars.length > 0) {
+      mappingLabel.innerHTML = `Dados (Ordem do CSV: ${vars.map((v, i) => `<strong>Col ${i+1}: ${v}</strong>`).join(', ')})`;
+    } else {
+      mappingLabel.textContent = 'Dados (Formato CSV: valor1, valor2...)';
+    }
+  }
 
     container.classList.remove('hidden');
     
@@ -47,8 +64,8 @@ export class EditorView {
 
     fields.innerHTML = vars.map(v => `
       <div class="var-field">
-        <label>${v}</label>
-        <input type="text" name="${v}" value="${currentValues[v] || ''}" placeholder="Valor para ${v}...">
+        <label title="Variável detectada no prompt">${v}</label>
+        <input type="text" name="${v}" value="${currentValues[v] || ''}" placeholder="Preencher ${v}...">
       </div>
     `).join('');
   }
@@ -109,6 +126,45 @@ export class EditorView {
     };
   }
 
+  showBatchResults(results, varNames) {
+    const output = document.getElementById('response-output');
+    
+    const tableHeader = `
+      <thead>
+        <tr>
+          ${varNames.map(v => `<th>${v}</th>`).join('')}
+          <th>Resposta (Resumo)</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+    `;
+
+    const tableRows = results.map((res, index) => `
+      <tr>
+        ${res.input.map(val => `<td>${val}</td>`).join('')}
+        <td class="text-truncate">${this.escapeHtml(res.output.substring(0, 50))}...</td>
+        <td>
+          <button class="btn-small btn-view-detail" data-index="${index}">Ver Full</button>
+        </td>
+      </tr>
+    `).join('');
+
+    output.innerHTML = `
+      <div class="batch-results-wrapper">
+        <h4>📊 Relatório de Execução em Lote</h4>
+        <div class="table-scroll">
+          <table class="batch-table">
+            ${tableHeader}
+            <tbody>${tableRows}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    // Armazenar resultados para visualização detalhada
+    this.lastBatchResults = results;
+  }
+
   showOutput(text) {
     const output = document.getElementById('response-output');
     
@@ -120,9 +176,9 @@ export class EditorView {
 
     output.innerHTML = `
       <div class="response-text">${formatted}</div>
-      <div class="individual-export-actions" style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 0.5rem;">
-        <button id="btn-export-json" class="btn-small">📄 Export JSON</button>
-        <button id="btn-export-md" class="btn-small">📝 Export Markdown</button>
+      <div class="individual-export-actions">
+        <button id="btn-export-json" class="btn-export"><span>📄</span> Export JSON</button>
+        <button id="btn-export-md" class="btn-export"><span>📝</span> Export Markdown</button>
       </div>
     `;
     

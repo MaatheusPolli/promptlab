@@ -66,14 +66,26 @@ import { LibraryController } from './controllers/libraryController.js';
 
   // Export Library
   document.getElementById('export-library').addEventListener('click', async () => {
-    const prompts = await storageService.getPrompts();
-    const blob = new Blob([JSON.stringify(prompts, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'promptlab-export.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      await storageService.init(); // Garante que a DB está aberta
+      const prompts = await storageService.getPrompts();
+      
+      if (!prompts || prompts.length === 0) {
+        alert('Sua biblioteca está vazia. Salve alguns prompts antes de exportar!');
+        return;
+      }
+
+      const blob = new Blob([JSON.stringify(prompts, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `promptlab-library-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Falha na exportação:', err);
+      alert('Erro ao exportar biblioteca. Tente novamente.');
+    }
   });
 
   // Check for Test Mode

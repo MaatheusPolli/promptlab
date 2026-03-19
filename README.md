@@ -21,16 +21,18 @@ Pense nele como uma IDE local para engenharia de prompt: sem nuvem, sem custo po
 ## 🚀 Funcionalidades
 
 - **Editor de Prompt ao Vivo** — escreva e execute prompts instantaneamente com o Gemini Nano
-- **Testes A/B** — execute dois prompts simultaneamente e compare os resultados lado a lado
-- **Resiliência Nativa** — Sistema automático de 2 retries com fallback em caso de falha do modelo
+- **Sistema de Templating** — utilize variáveis dinâmicas como `{{texto}}` com geração automática de formulários
+- **Batch Testing** — execute o mesmo prompt contra uma lista de entradas (via CSV) para validar consistência em escala
+- **Testes A/B** — execute dois prompts simultaneamente e compare os resultados lado a lado com Diff visual
+- **Resiliência Nativa** — sistema automático de 2 retries com fallback em caso de falha do modelo
 - **Controle de Parâmetros** — ajuste Temperatura e Top-K em tempo real por prompt
 - **Métricas de Resposta** — rastreia tempo de resposta, contagem estimada de tokens e pontuação de consistência
 - **Modo de Auto-Avaliação** — o Gemini Nano avalia a qualidade de sua própria resposta (meta-IA)
 - **Biblioteca de Prompts** — salve, adicione tags, pesquise e organize prompts via IndexedDB
 - **Autocomplete de Tags** — sugestões inteligentes ao buscar na biblioteca
-- **Diff de Prompt** — comparação visual entre as saídas de dois prompts
+- **Persistência Completa** — histórico de execuções, testes A/B e biblioteca salvos localmente
 - **Exportação** — exporte sua biblioteca completa ou prompts individuais em JSON e Markdown
-- **Syntax Highlighting** — Visualização clara de códigos gerados (Markdown/JSON) com Prism.js
+- **Syntax Highlighting** — visualização clara de códigos gerados (Markdown/JSON) com Prism.js
 
 ---
 
@@ -102,6 +104,36 @@ npm start
 # 4. Abra no Chrome
 # http://localhost:8080
 ```
+
+---
+
+## 📖 Guia de Uso
+
+### 1. Editor e Variáveis
+O editor principal permite que você crie prompts dinâmicos.
+- **Variáveis:** Use `{{nome_da_variavel}}` no seu prompt. O PromptLab criará automaticamente campos de entrada para você preencher antes de executar.
+- **Parâmetros:** No painel lateral, você pode ajustar a **Temperatura** (criatividade) e **Top-K** do Gemini Nano.
+- **Execução:** Clique em "Executar" para ver a resposta em tempo real com realce de sintaxe.
+
+### 2. Batch Testing (Testes em Lote)
+Ideal para validar a consistência de um prompt com diferentes entradas.
+- Clique no ícone de **Upload (CSV)** no editor.
+- O CSV deve conter colunas que correspondam às suas variáveis `{{}}`.
+- O PromptLab executará o prompt para cada linha do arquivo e mostrará o progresso e métricas agregadas.
+
+### 3. Testes A/B
+Compare a performance de dois prompts diferentes para o mesmo objetivo.
+- Mude para a aba **A/B Testing**.
+- Escreva dois prompts (Ex: um curto e um detalhado).
+- Execute ambos simultaneamente. O sistema mostrará um **Diff Visual** (marcando o que mudou entre as respostas) e comparará as métricas de tempo e qualidade.
+
+### 4. Biblioteca e Organização
+- **Salvar:** Clique em "Salvar na Biblioteca" para persistir seu prompt, parâmetros e tags.
+- **Busca:** Use a barra de busca com **Autocomplete de Tags** para encontrar prompts antigos rapidamente.
+- **Exportação:** Você pode baixar sua biblioteca inteira ou prompts específicos nos formatos **JSON** ou **Markdown**.
+
+### 5. Auto-Avaliação (Meta-IA)
+- Após cada execução, o Gemini Nano analisa a própria resposta com base em critérios de clareza e precisão, atribuindo uma nota de 1 a 10. Isso ajuda a identificar quando o modelo "alucinou" ou foi vago.
 
 ---
 
