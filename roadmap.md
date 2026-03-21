@@ -1,22 +1,25 @@
-# 🗺️ Roadmap Estratégico — PromptLab
+# 🗺️ Roadmap Estratégico — PromptLab (Idéias Futuras)
 
-Este documento descreve a visão de evolução do PromptLab, focando em ideias futuras para expandir as capacidades da ferramenta.
-
----
-
-## 🌌 Próximos Passos & Ideias
-
-| Melhoria | Impacto Esperado | Esforço | Descrição |
-| :--- | :--- | :--- | :--- |
-| **Prompt Chaining (Workflows)** | Interface visual (nós) para encadear prompts (Saída de A -> Entrada de B). | G | Permitir a criação de pipelines complexos onde o resultado de um prompt serve de contexto para o próximo. |
-| **Multi-Model Proxy** | Comparar Gemini Nano (local) com modelos em nuvem (GPT-4, Claude). | G | Integrar APIs externas para comparação de performance entre modelos locais e em nuvem. |
-| **Extensão para Browser** | Transformar o PromptLab em uma extensão que injeta o Gemini Nano em qualquer site. | G | Levar a capacidade de prompting local para o fluxo de navegação do usuário. |
-| **Plataforma de Benchmarking** | Criar um "Leaderboard" de prompts eficientes para a comunidade. | G | Um espaço para compartilhar e votar nos melhores prompts para modelos locais. |
-| **Suporte a RAG Local** | Indexação de documentos simples (txt, md) para busca semântica offline. | G | Permitir que o Gemini Nano consulte documentos locais antes de responder. |
-| **Exportação para Código** | Gerar snippets (JS, Python) para integrar o prompt em apps externos. | M | Facilitar a transição do playground para a implementação real. |
+Este documento descreve as melhorias planejadas para o futuro do PromptLab.
 
 ---
 
-## 🛠️ Notas de Design
-- **Offline First:** Todas as evoluções devem priorizar o processamento local sempre que possível.
-- **Privacidade:** Garantir que dados sensíveis nunca saiam do navegador, especialmente ao lidar com APIs externas.
+## 🚀 Próximas Implementações (Ideias de Melhoria)
+
+| Item | Objetivo |
+| :--- | :--- |
+| **Prompt Chaining** | Criar fluxos onde a saída de um prompt alimenta a entrada de outro automaticamente. |
+| **Suporte a RAG Local** | Permitir o upload de arquivos `.txt` ou `.md` para que o Gemini Nano os use como contexto. |
+| **Exportação de Código** | Gerar snippets em JS/Python prontos para usar o prompt atual em outros projetos. |
+| **Favoritos e Coleções** | Organizar a biblioteca em pastas ou coleções temáticas. |
+| **Proxy Multi-Modelo** | Interface para comparar o Gemini Nano local com modelos em nuvem (via API key opcional). |
+| **Extensão Chrome** | Levar o playground para dentro de uma aba lateral do navegador em qualquer site. |
+| **Fine-Tuning Assistant** | Ferramentas para ajudar a preparar datasets locais baseados em prompts bem-sucedidos. |
+| **Gráficos Comparativos** | Dashboard visual para ver a evolução da qualidade dos prompts ao longo do tempo. |
+
+---
+
+## 🛠️ Princípios de Design
+- **100% Local:** Manter a soberania dos dados do usuário.
+- **Vanilla Power:** Minimizar dependências externas para manter o app leve e rápido.
+- **UX Tech:** Interface sempre focada em produtividade para desenvolvedores.

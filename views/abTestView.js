@@ -48,4 +48,13 @@ export class ABTestView {
       return `<span class="word-${part.status}">${part.word}</span>`;
     }).join(' ');
   }
+
+  showLoading(isLoading) {
+    const loading = document.getElementById('ab-loading');
+    if (isLoading) {
+      loading.classList.remove('hidden');
+    } else {
+      loading.classList.add('hidden');
+    }
+  }
 }

@@ -21,6 +21,8 @@ export class ABTestController {
 
     const btn = document.getElementById('btn-run-ab');
     btn?.classList.add('loading');
+    if (btn) btn.disabled = true;
+    this.view.showLoading(true);
 
     try {
       const [resA, resB] = await Promise.all([
@@ -42,7 +44,9 @@ export class ABTestController {
     } catch (error) {
       alert(`Erro no teste A/B: ${error.message}`);
     } finally {
+      this.view.showLoading(false);
       btn?.classList.remove('loading');
+      if (btn) btn.disabled = false;
     }
   }
 }

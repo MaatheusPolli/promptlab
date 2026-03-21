@@ -39,20 +39,6 @@ export class EditorView {
       container.classList.add('hidden');
       return;
     }
-    // ... rest of method
-  }
-
-  updateBatchMapping(vars) {
-    const batchInput = document.getElementById('batch-input');
-    if (!batchInput) return;
-
-    const mappingLabel = document.querySelector('.batch-body label');
-    if (vars.length > 0) {
-      mappingLabel.innerHTML = `Dados (Ordem do CSV: ${vars.map((v, i) => `<strong>Col ${i+1}: ${v}</strong>`).join(', ')})`;
-    } else {
-      mappingLabel.textContent = 'Dados (Formato CSV: valor1, valor2...)';
-    }
-  }
 
     container.classList.remove('hidden');
     
@@ -70,6 +56,18 @@ export class EditorView {
     `).join('');
   }
 
+  updateBatchMapping(vars) {
+    const batchInput = document.getElementById('batch-input');
+    if (!batchInput) return;
+
+    const mappingLabel = document.querySelector('.batch-body label');
+    if (vars.length > 0) {
+      mappingLabel.innerHTML = `Dados (CSV: ${vars.map((v, i) => `<strong>Col ${i+1}: ${v}</strong>`).join(', ')})`;
+    } else {
+      mappingLabel.textContent = 'Dados (CSV)';
+    }
+  }
+
   getVariables() {
     const values = {};
     document.querySelectorAll('#variables-fields input').forEach(input => {
@@ -78,18 +76,72 @@ export class EditorView {
     return values;
   }
 
+  clear() {
+    document.getElementById('system-prompt').value = '';
+    document.getElementById('user-prompt').value = '';
+    document.getElementById('param-temp').value = 0.7;
+    document.getElementById('param-topk').value = 10;
+    document.getElementById('val-temp').textContent = '0.7';
+    document.getElementById('val-topk').textContent = '10';
+    document.getElementById('variables-container').classList.add('hidden');
+    document.getElementById('variables-fields').innerHTML = '';
+    document.getElementById('response-output').innerHTML = `
+      <div class="empty-state" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-dim); flex-direction: column; gap: 1rem;">
+          <span class="empty-state-icon">✨</span>
+          <p>Aguardando execução...</p>
+      </div>
+    `;
+    this.updateMetrics({
+      responseTimeMs: 0,
+      inputTokenEstimate: 0,
+      outputTokenEstimate: 0,
+      consistencyScore: null,
+      selfEvalScore: null
+    });
+    document.getElementById('btn-self-eval').disabled = true;
+  }
+
+  showCopyFeedback(btnId) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span>✅</span> Copiado!';
+    btn.classList.add('btn-success');
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.classList.remove('btn-success');
+    }, 2000);
+  }
+
   toggleBatchContainer() {
     const container = document.getElementById('batch-container');
     container.classList.toggle('hidden');
   }
 
   getBatchData() {
-    const input = document.getElementById('batch-input').value;
-    if (!input.trim()) return [];
+    const input = document.getElementById('batch-input').value.trim();
+    if (!input) return [];
     
+    // Detectar variáveis no prompt para decidir como dar parse
+    const userPrompt = document.getElementById('user-prompt').value;
+    const systemPrompt = document.getElementById('system-prompt').value;
+    const text = (systemPrompt + ' ' + userPrompt);
+    const varNames = [...new Set(text.match(/{{(.*?)}}/g) || [])];
+
+    // Se houver apenas 1 variável e o input estiver em uma linha com vírgulas
+    if (varNames.length === 1 && !input.includes('\n') && input.includes(',')) {
+      return input.split(',').map(v => [v.trim()]).filter(v => v[0] !== '');
+    }
+
+    // Caso padrão: cada linha é um registro, colunas separadas por vírgula
     return input.split('\n')
       .map(line => line.split(',').map(v => v.trim()))
       .filter(line => line.length > 0 && line[0] !== '');
+  }
+
+  hideBatchProgress() {
+    const progress = document.getElementById('batch-progress');
+    if (progress) progress.classList.add('hidden');
   }
 
   updateBatchProgress(current, total) {
@@ -209,10 +261,15 @@ export class EditorView {
   }
 
   updateMetrics(metrics) {
-    document.getElementById('m-time').textContent = metrics.responseTimeMs || '-';
-    document.getElementById('m-tokens').textContent = (metrics.inputTokenEstimate + metrics.outputTokenEstimate) || '-';
-    document.getElementById('m-consistency').textContent = metrics.consistencyScore || '-';
-    document.getElementById('m-eval').textContent = metrics.selfEvalScore || '-';
+    const timeEl = document.getElementById('m-time');
+    const tokensEl = document.getElementById('m-tokens');
+    const consistencyEl = document.getElementById('m-consistency');
+    const evalEl = document.getElementById('m-eval');
+
+    if (timeEl) timeEl.textContent = metrics.responseTimeMs ? `${metrics.responseTimeMs}ms` : '-';
+    if (tokensEl) tokensEl.textContent = (metrics.inputTokenEstimate + metrics.outputTokenEstimate) ? `${metrics.inputTokenEstimate + metrics.outputTokenEstimate}` : '-';
+    if (consistencyEl) consistencyEl.textContent = metrics.consistencyScore ? `${metrics.consistencyScore}%` : '-';
+    if (evalEl) evalEl.textContent = metrics.selfEvalScore ? `${metrics.selfEvalScore}/10` : '-';
   }
 
   showError(msg) {

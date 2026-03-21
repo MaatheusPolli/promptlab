@@ -111,22 +111,28 @@ export class AIService {
    * @returns {Promise<string>}
    */
   async runRawPrompt(text, options = {}) {
-    const maxRetries = 2;
+    const maxRetries = 1;
     const fallbackMessage = "Não foi possível processar a solicitação interna.";
+
+    // Regra da API do Chrome: Se informar um, deve informar o outro.
+    const safeOptions = { ...options };
+    if (safeOptions.temperature !== undefined && safeOptions.topK === undefined) {
+      safeOptions.topK = 3; 
+    } else if (safeOptions.topK !== undefined && safeOptions.temperature === undefined) {
+      safeOptions.temperature = 0.7;
+    }
 
     for (let i = 0; i <= maxRetries; i++) {
       try {
-        const session = await window.ai.languageModel.create({
-          ...options,
-          expectedOutputLanguage: 'en'
-        });
+        const session = await window.ai.languageModel.create(safeOptions);
         try {
           return await session.prompt(text);
         } finally {
           session.destroy();
         }
       } catch (error) {
-        // Silently retry
+        console.error(`Tentativa ${i+1} falhou:`, error.message);
+        if (i === maxRetries) throw error;
       }
     }
 

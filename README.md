@@ -1,10 +1,12 @@
-# 🧩 PromptLab — Playground de Engenharia de Prompt
+# 🧩 PromptLab — Playground de Engenharia de Prompt (v1.3.0)
 
 > Crie, teste, compare e otimize prompts para o Gemini Nano — com métricas, testes A/B e uma biblioteca pessoal. Tudo offline.
 
+![PromptLab Banner](./linkedin_banner.svg)
+
 ![Chrome AI](https://img.shields.io/badge/Chrome%20Built--in%20AI-Gemini%20Nano-blue)
 ![Offline](https://img.shields.io/badge/Processamento-100%25%20Offline-green)
-![Para](https://img.shields.io/badge/Para-Engenheiros%20de%20IA%20%26%20Desenvolvedores-purple)
+![Versão](https://img.shields.io/badge/Versão-1.3.0-orange)
 ![Licença](https://img.shields.io/badge/Licença-MIT-yellow)
 
 ---
@@ -18,21 +20,18 @@ Pense nele como uma IDE local para engenharia de prompt: sem nuvem, sem custo po
 
 ---
 
-## 🚀 Funcionalidades
+## 🚀 Funcionalidades (v1.3.0)
 
-- **Editor de Prompt ao Vivo** — escreva e execute prompts instantaneamente com o Gemini Nano
-- **Sistema de Templating** — utilize variáveis dinâmicas como `{{texto}}` com geração automática de formulários
-- **Batch Testing** — execute o mesmo prompt contra uma lista de entradas (via CSV) para validar consistência em escala
-- **Testes A/B** — execute dois prompts simultaneamente e compare os resultados lado a lado com Diff visual
-- **Resiliência Nativa** — sistema automático de 2 retries com fallback em caso de falha do modelo
-- **Controle de Parâmetros** — ajuste Temperatura e Top-K em tempo real por prompt
-- **Métricas de Resposta** — rastreia tempo de resposta, contagem estimada de tokens e pontuação de consistência
-- **Modo de Auto-Avaliação** — o Gemini Nano avalia a qualidade de sua própria resposta (meta-IA)
-- **Biblioteca de Prompts** — salve, adicione tags, pesquise e organize prompts via IndexedDB
-- **Autocomplete de Tags** — sugestões inteligentes ao buscar na biblioteca
-- **Persistência Completa** — histórico de execuções, testes A/B e biblioteca salvos localmente
-- **Exportação** — exporte sua biblioteca completa ou prompts individuais em JSON e Markdown
-- **Syntax Highlighting** — visualização clara de códigos gerados (Markdown/JSON) com Prism.js
+- **Editor de Prompt Moderno** — Escreva e execute prompts com suporte a atalhos (`Ctrl+Enter`) e UI refinada.
+- **Sistema de Templating** — Utilize variáveis dinâmicas como `{{texto}}` com geração automática de formulários.
+- **Batch Testing (Execução em Lote)** — Processe listas de dados automaticamente, com suporte a CSV e múltiplas variáveis.
+- **Testes A/B com Diff Visual** — Compare dois prompts simultaneamente com destaque de diferenças no texto.
+- **Auto-Avaliação Resiliente** — O Gemini Nano avalia a qualidade de sua própria resposta, com fallback técnico inteligente caso a IA atinja limites de cota.
+- **Modais Customizados** — Experiência de confirmação integrada ao design do app (substituindo diálogos nativos).
+- **Controle de Parâmetros** — Ajuste Temperatura e Top-K em tempo real com feedback instantâneo no console.
+- **Métricas Avançadas** — Latência, estimativa de tokens, consistência e notas de qualidade.
+- **Biblioteca de Prompts** — Salve, adicione tags e pesquise prompts via IndexedDB.
+- **Persistência e Exportação** — Tudo salvo localmente; exporte para JSON ou Markdown a qualquer momento.
 
 ---
 
@@ -40,21 +39,10 @@ Pense nele como uma IDE local para engenharia de prompt: sem nuvem, sem custo po
 
 | Métrica | Descrição |
 |---------|-----------|
-| **Tempo de Resposta** | Milissegundos desde a requisição até a conclusão |
-| **Estimativa de Tokens** | Contagem aproximada de tokens de entrada + saída |
-| **Score de Consistência** | Similaridade entre execuções repetidas do mesmo prompt |
-| **Score de Auto-Avaliação** | Avaliação da própria IA sobre sua resposta (1–10) |
-| **Resiliência (Retries)** | Quantas tentativas foram necessárias para obter sucesso? |
-
----
-
-## 🧪 Casos de Uso
-
-- Desenvolvimento de system prompts para seus próprios produtos baseados em IA
-- Teste de como pequenas mudanças de parâmetros afetam a qualidade da saída
-- Construção de uma biblioteca reutilizável de padrões de prompt para sua equipe
-- Entendimento das forças, limitações e peculiaridades do Gemini Nano
-- Ensino de conceitos de engenharia de prompt com exemplos vivos e reproduzíveis
+| **Latência** | Milissegundos desde a requisição até a conclusão. |
+| **Tokens** | Contagem aproximada de tokens de entrada + saída. |
+| **Estabilidade** | Similaridade entre execuções repetidas (via Teste de Consistência). |
+| **Auto-Avaliação** | Nota qualitativa gerada pela IA ou via Heurística Técnica (1–10). |
 
 ---
 
@@ -71,8 +59,6 @@ Pense nele como uma IDE local para engenharia de prompt: sem nuvem, sem custo po
 | Language Detector | `chrome://flags/#language-detector-api` | Ativado |
 | On-device Model | `chrome://flags/#optimization-guide-on-device-model` | Enabled BypassPrefRequirement |
 
-Reinicie o Chrome após ativar. Na primeira execução, o Gemini Nano (~1.5GB) é baixado automaticamente.
-
 ---
 
 ## 🛠️ Stack Tecnológica
@@ -81,14 +67,13 @@ Reinicie o Chrome após ativar. Na primeira execução, o Gemini Nano (~1.5GB) �
 |-----------|------|
 | Vanilla JavaScript (ES6+) | Lógica da aplicação |
 | Chrome LanguageModel API | Execução de prompt e auto-avaliação |
-| IndexedDB | Biblioteca persistente de prompts e histórico de execuções |
-| Canvas API | Gráficos de métricas e visualização de consistência |
-| Prism.js | Realce de sintaxe na saída e no editor |
-| http-server | Servidor de desenvolvimento local |
+| IndexedDB | Persistência local robusta |
+| CSS3 Moderno | Layout com Blur, Glow e Responsive Design |
+| Prism.js | Realce de sintaxe na saída |
 
 ---
 
-## 📦 Primeiros Passos
+## 📦 Instalação Rápida
 
 ```bash
 # 1. Clone o repositório
@@ -100,125 +85,18 @@ npm install
 
 # 3. Inicie o servidor
 npm start
-
-# 4. Abra no Chrome
-# http://localhost:8080
 ```
 
 ---
 
-## 📖 Guia de Uso
-
-### 1. Editor e Variáveis
-O editor principal permite que você crie prompts dinâmicos.
-- **Variáveis:** Use `{{nome_da_variavel}}` no seu prompt. O PromptLab criará automaticamente campos de entrada para você preencher antes de executar.
-- **Parâmetros:** No painel lateral, você pode ajustar a **Temperatura** (criatividade) e **Top-K** do Gemini Nano.
-- **Execução:** Clique em "Executar" para ver a resposta em tempo real com realce de sintaxe.
-
-### 2. Batch Testing (Testes em Lote)
-Ideal para validar a consistência de um prompt com diferentes entradas.
-- Clique no ícone de **Upload (CSV)** no editor.
-- O CSV deve conter colunas que correspondam às suas variáveis `{{}}`.
-- O PromptLab executará o prompt para cada linha do arquivo e mostrará o progresso e métricas agregadas.
-
-### 3. Testes A/B
-Compare a performance de dois prompts diferentes para o mesmo objetivo.
-- Mude para a aba **A/B Testing**.
-- Escreva dois prompts (Ex: um curto e um detalhado).
-- Execute ambos simultaneamente. O sistema mostrará um **Diff Visual** (marcando o que mudou entre as respostas) e comparará as métricas de tempo e qualidade.
-
-### 4. Biblioteca e Organização
-- **Salvar:** Clique em "Salvar na Biblioteca" para persistir seu prompt, parâmetros e tags.
-- **Busca:** Use a barra de busca com **Autocomplete de Tags** para encontrar prompts antigos rapidamente.
-- **Exportação:** Você pode baixar sua biblioteca inteira ou prompts específicos nos formatos **JSON** ou **Markdown**.
-
-### 5. Auto-Avaliação (Meta-IA)
-- Após cada execução, o Gemini Nano analisa a própria resposta com base em critérios de clareza e precisão, atribuindo uma nota de 1 a 10. Isso ajuda a identificar quando o modelo "alucinou" ou foi vago.
-
----
-
-## 🛡️ Testes e Garantia de Qualidade
-
-O PromptLab possui uma suíte de testes integrada (Test Switch) que permite verificar a integridade do sistema, simular a IA e validar a lógica de cálculo.
-
-### Como Executar os Testes
-
-1. Inicie o servidor normalmente (`npm start`).
-2. Adicione o parâmetro `?test=true` à URL.
-   - Exemplo: `http://localhost:8080/?test=true`
-3. A suíte de testes será executada automaticamente no carregamento.
-4. Um painel flutuante exibirá o status (PASS/FAIL) e os detalhes serão logados no Console do navegador (`F12`).
-
-### O que é testado?
-- **Mock de IA:** Simula respostas bem-sucedidas, falhas e retornos JSON para auto-avaliação sem carregar o modelo real.
-- **MetricsService:** Valida precisão matemática da estimativa de tokens, diff de texto e cálculo de consistência (Jaccard).
-- **StorageService:** Verifica operações CRUD (Create, Read, Delete) no IndexedDB.
-- **Robustez:** Testa entradas nulas, textos vazios e caracteres especiais.
-
----
-
-## ⚠️ Cenários e Solução de Problemas
-
-Abaixo estão os cenários de comportamento mapeados e como o sistema reage:
-
-| Cenário | Comportamento Esperado | Solução / Ação |
-|---------|------------------------|----------------|
-| **Navegador Incompatível** | Tela de aviso "Requisitos Não Atendidos" com lista de erros. | Use Chrome Canary e ative as flags listadas. |
-| **Modelo Baixando** | O Chrome pode demorar na primeira execução (~1.5GB). | Aguarde e observe o log "Download Progress" no console. |
-| **Prompt Vazio** | O botão de execução não dispara ação. | Preencha o campo "User Prompt". |
-| **Auto-Avaliação Falha** | Se a IA não retornar JSON válido, exibe erro. | Tente novamente (a temperatura é baixada automaticamente para 0.1 para estabilidade). |
-| **Diff Confuso** | Se os textos forem totalmente diferentes, o diff marca tudo como removido/adicionado. | O diff é otimizado para variações de prompt, não textos aleatórios. |
-| **Limpar Dados** | Deseja resetar a biblioteca? | Abra DevTools -> Application -> Storage -> IndexedDB -> Delete 'PromptLabDB'. |
-
----
-
-## 📂 Estrutura do Projeto
-
-```
-promptlab/
-├── index.html
-├── index.js                        # Ponto de entrada da aplicação
-├── style.css
-├── controllers/
-│   ├── editorController.js         # Eventos do editor, execução e exportação
-│   ├── abTestController.js         # Gerenciamento de sessões de teste A/B
-│   └── libraryController.js        # CRUD e autocomplete da biblioteca
-├── services/
-│   ├── aiService.js                # Executor do Gemini Nano com retries e fallback
-│   ├── metricsService.js           # Tempo de resposta, tokens e consistência
-│   ├── selfEvalService.js          # Prompts de auto-avaliação (Meta-IA)
-│   └── storageService.js           # IndexedDB para prompts e histórico
-├── views/
-│   ├── editorView.js               # Editor, saída formatada e Prism.js
-│   ├── abTestView.js               # Comparação A/B lado a lado
-│   ├── metricsView.js              # Gráficos de métricas e tabela de execuções
-│   └── libraryView.js              # Busca e navegação com tags
-└── tests/                          # Suíte de testes automatizados
-    └── testRunner.js               # Executor e mocks de teste
-```
-
----
-
-## 💡 Guia de Engenharia de Prompt Integrado
-
-O app inclui um painel de referência interativo cobrindo:
-
-- Zero-shot vs few-shot prompting
-- Chain-of-thought e raciocínio passo a passo
-- Técnicas de atribuição de papel (role) e persona
-- Controle de formato de saída (JSON, listas, texto estruturado)
-- Gerenciamento de janela de contexto para o Gemini Nano
-
----
-
-## 🔒 Privacidade
+## 🔒 Privacidade e Segurança
 
 Todos os prompts, saídas e métricas são armazenados localmente via IndexedDB.  
-Nada sai do seu navegador. Jamais.
+**Nada sai do seu navegador.** Ideal para testes com dados sensíveis que não podem subir para a nuvem.
 
 ---
 
-Matheus Gasparotto Polli
+Criado por **Matheus Gasparotto Polli** — 2026
 
 ---
 

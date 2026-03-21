@@ -1,3 +1,5 @@
+import { uiUtils } from '../services/uiUtils.js';
+
 export class LibraryController {
   constructor(view, storageService, editorController) {
     this.view = view;
@@ -68,7 +70,12 @@ export class LibraryController {
   }
 
   async handleDeletePrompt(id) {
-    if (!confirm('Tem certeza que deseja excluir este prompt?')) return;
+    const confirmed = await uiUtils.confirm(
+      'Excluir Prompt',
+      'Tem certeza que deseja remover este prompt da sua biblioteca? Esta ação é irreversível.'
+    );
+
+    if (!confirmed) return;
     
     try {
       await this.storageService.deletePrompt(id);

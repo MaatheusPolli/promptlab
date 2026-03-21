@@ -1,3 +1,5 @@
+import { uiUtils } from '../services/uiUtils.js';
+
 export class EditorController {
   constructor(view, aiService, metricsService, selfEvalService, storageService, metricsView) {
     this.view = view;
@@ -55,6 +57,40 @@ export class EditorController {
 
     document.getElementById('btn-self-eval')?.addEventListener('click', () => this.handleSelfEval());
     document.getElementById('save-prompt')?.addEventListener('click', () => this.handleSavePrompt());
+    document.getElementById('clear-editor')?.addEventListener('click', () => this.handleClearEditor());
+    document.getElementById('copy-response')?.addEventListener('click', () => this.handleCopyResponse());
+
+    // Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        const runBtn = document.getElementById('btn-run');
+        if (runBtn && !runBtn.disabled) {
+          this.handleRun();
+        }
+      }
+    });
+  }
+
+  async handleClearEditor() {
+    const confirmed = await uiUtils.confirm(
+      'Limpar Editor', 
+      'Tem certeza que deseja limpar todos os campos do prompt? Esta ação não pode ser desfeita.'
+    );
+    
+    if (confirmed) {
+      this.view.clear();
+      this.currentOutput = null;
+    }
+  }
+
+  async handleCopyResponse() {
+    if (!this.currentOutput) return;
+    try {
+      await navigator.clipboard.writeText(this.currentOutput);
+      this.view.showCopyFeedback('copy-response');
+    } catch (err) {
+      console.error('Falha ao copiar:', err);
+    }
   }
 
   async handleBatchRun() {
@@ -93,43 +129,50 @@ export class EditorController {
         let processedSystem = data.systemPrompt;
         let processedUser = data.userPrompt;
 
+        // Mapeamento dinâmico: Coluna 1 vai para a primeira variável, Coluna 2 para a segunda, etc.
         varNames.forEach((name, idx) => {
-          const val = row[idx] || '';
+          const val = row[idx] || row[0] || ''; // Fallback para a primeira coluna se houver apenas uma
           const regex = new RegExp(`{{${name}}}`, 'g');
           processedSystem = processedSystem.replace(regex, val);
           processedUser = processedUser.replace(regex, val);
         });
 
-        const { output, responseTimeMs } = await this.aiService.runPrompt({
-          ...data,
-          systemPrompt: processedSystem,
-          userPrompt: processedUser
-        });
+        try {
+          const { output, responseTimeMs } = await this.aiService.runPrompt({
+            ...data,
+            systemPrompt: processedSystem,
+            userPrompt: processedUser
+          });
 
-        results.push({ input: row, output });
-        
-        // Save each run
-        await this.storageService.saveRun({
-          promptId: null,
-          promptText: processedUser,
-          output,
-          metrics: {
-            responseTimeMs,
-            inputTokenEstimate: this.metricsService.estimateTokens(processedSystem + processedUser),
-            outputTokenEstimate: this.metricsService.estimateTokens(output)
-          }
-        });
+          results.push({ input: row, output });
+          
+          // Save each run
+          await this.storageService.saveRun({
+            promptId: null,
+            promptText: processedUser,
+            output,
+            metrics: {
+              responseTimeMs,
+              inputTokenEstimate: this.metricsService.estimateTokens(processedSystem + processedUser),
+              outputTokenEstimate: this.metricsService.estimateTokens(output)
+            }
+          });
+        } catch (itemError) {
+          console.error(`Erro no item ${i}:`, itemError);
+          results.push({ input: row, output: `❌ Erro: ${itemError.message}` });
+        }
       }
 
       // Renderiza a tabela de resultados completa
       this.view.showBatchResults(results, varNames);
       this.refreshChart();
-      alert(`Execução em lote concluída! ${results.length} itens processados.`);
     } catch (error) {
-      this.view.showError(`Erro no lote: ${error.message}`);
+      this.view.showError(`Erro crítico no lote: ${error.message}`);
     } finally {
       this.view.showLoading(false);
+      this.view.hideBatchProgress();
       btn.classList.remove('loading');
+      btn.disabled = false;
     }
   }
 
@@ -226,7 +269,12 @@ export class EditorController {
     const data = this.view.getEditorData();
     if (!data.userPrompt) return;
 
-    if (!confirm('Este teste executará o prompt 3 vezes para medir a estabilidade da resposta. Deseja continuar?')) return;
+    const confirmed = await uiUtils.confirm(
+      'Teste de Estabilidade',
+      'Este teste executará o mesmo prompt 3 vezes para medir a variação. Isso pode levar alguns segundos. Deseja continuar?'
+    );
+
+    if (!confirmed) return;
 
     const btn = document.getElementById('btn-consistency');
     btn?.classList.add('loading');
@@ -260,6 +308,13 @@ export class EditorController {
     
     btn?.classList.add('loading');
     this.view.showLoading(true);
+
+    // Resetar a métrica visualmente para indicar que uma nova análise começou
+    this.currentMetrics.selfEvalScore = null;
+    this.view.updateMetrics(this.currentMetrics);
+
+    // Pequena pausa para a API do Chrome respirar entre chamadas consecutivas
+    await new Promise(r => setTimeout(r, 500));
 
     try {
       const { score, reasoning } = await this.selfEvalService.selfEvaluate(data.userPrompt, this.currentOutput);
